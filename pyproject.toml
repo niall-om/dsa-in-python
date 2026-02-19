@@ -51,11 +51,11 @@ dev = [
 ##################################################################################
 # --------------------------- Hatch ----------------------------------------------
 [tool.hatch.build.targets.wheel]
-packages = ["src/place_holder_name"]
+packages = ["src/dsa-in-python"]
 
 [tool.hatch.build.targets.sdist]
 only-include = [
-    "src/place_holder_name",
+    "src/dsa-in-python",
     "pyproject.toml",
     "README.md",
     "docs",
