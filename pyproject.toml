@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 ##################################################################################
 # --------------------------- Project --------------------------------------------
 [project]
-name = "dsa-in-python"
+name = "dsa_in_python"
 version = "0.1.0"
 description = "Python solutions to classic DSA problems."
 readme = "README.md"
@@ -51,11 +51,11 @@ dev = [
 ##################################################################################
 # --------------------------- Hatch ----------------------------------------------
 [tool.hatch.build.targets.wheel]
-packages = ["src/dsa-in-python"]
+packages = ["src/dsa_in_python"]
 
 [tool.hatch.build.targets.sdist]
 only-include = [
-    "src/dsa-in-python",
+    "src/dsa_in_python",
     "pyproject.toml",
     "README.md",
     "docs",
