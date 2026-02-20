@@ -31,8 +31,6 @@ dev_db_psql/
 # ---------------------------------------
 # Ignore all env files except example env files
 .env*
-!.env*.example
-
 
 # ---------------------------------------
 # Logs
