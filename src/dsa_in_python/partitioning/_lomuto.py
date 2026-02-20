@@ -21,13 +21,17 @@ Design notes:
 This module is intended for educational and comparative purposes.
 """
 
-# comparable interface
 from __future__ import annotations
 
 import random
+from typing import TypeVar
+
+from dsa_in_python.common.types import SupportsLessThan
+
+T = TypeVar('T', bound=SupportsLessThan)
 
 
-def _partition_lomuto_array(arr: list[int], p_idx: int, l_idx: int = 0, r_idx: int | None = None) -> int:
+def _partition_lomuto_array(arr: list[T], p_idx: int, l_idx: int = 0, r_idx: int | None = None) -> int:
     """
     Partition a list (or subarray) in-place using the Lomuto partition scheme.
 
@@ -86,7 +90,7 @@ def _partition_lomuto_array(arr: list[int], p_idx: int, l_idx: int = 0, r_idx: i
     # Partition
     i = l_idx
     for j in range(l_idx, r_idx):
-        if arr[j] <= pivot:
+        if arr[j] < pivot:
             arr[i], arr[j] = arr[j], arr[i]
             i += 1
 
@@ -95,7 +99,7 @@ def _partition_lomuto_array(arr: list[int], p_idx: int, l_idx: int = 0, r_idx: i
     return i
 
 
-def _partition_lomuto_array_random(arr: list[int], l_idx: int = 0, r_idx: int | None = None) -> int:
+def _partition_lomuto_array_random(arr: list[T], l_idx: int = 0, r_idx: int | None = None) -> int:
     """
     Partition a list (or subarray) in-place using the Lomuto partition scheme and randomized pivot selection
 
@@ -153,7 +157,7 @@ def _partition_lomuto_array_random(arr: list[int], l_idx: int = 0, r_idx: int | 
     # Partition
     i = l_idx
     for j in range(l_idx, r_idx):
-        if arr[j] <= pivot:
+        if arr[j] < pivot:
             arr[i], arr[j] = arr[j], arr[i]
             i += 1
 
