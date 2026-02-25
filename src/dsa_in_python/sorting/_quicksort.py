@@ -25,20 +25,12 @@ Design notes:
 This module is intended for educational and comparative purposes.
 """
 
-# array based
-#   - in-place
-#   - produce a new list
-#   - recursive
-#   - iterative
-
-# list based
-#   - to be defined
-
 from __future__ import annotations
 
 import random
-from typing import TypeVar
+from typing import TypeVar, cast
 
+from dsa_in_python.common.nodes import Node
 from dsa_in_python.common.types import SupportsLessThan
 from dsa_in_python.partitioning._lomuto import _partition_lomuto_array_random
 from dsa_in_python.partitioning._three_way import _partition_3way_array_random
@@ -46,7 +38,7 @@ from dsa_in_python.partitioning._three_way import _partition_3way_array_random
 T = TypeVar('T', bound=SupportsLessThan)
 
 
-# Recursive QuickSort Implementations
+# -------------------- Array based implementations ----------------------------
 def _quicksort_arr_random_lomuto_recursive(arr: list[T]) -> None:
     # input validation
     if not arr:
@@ -157,15 +149,89 @@ def _quicksort_arr_random_3way_iterative(arr: list[T]) -> None:
     return
 
 
-if __name__ == '__main__':
-    test_arrs: list[list[int]] = [[random.randint(-100, 100) for _ in range(20)] for _ in range(10)]
+# -------------------- Linked List based implementations ----------------------------
+def _quicksort_ll_random_3way_recursive(head: Node[T]) -> Node[T] | None:
+    if not head or head._next is None:
+        return head
 
-    for i, arr in enumerate(test_arrs):
-        print('=' * 100)
-        print(f'Test Case {i + 1}')
-        print(f'Test Array: {arr}')
-        expected = sorted(arr)
-        # _quicksort_arr_random_lomuto_recursive(arr)
-        _quicksort_arr_random_3way_iterative(arr)
-        print(f'Sorted Array: {arr}')
-        print(f'Test Result: {arr == expected}')
+    def _select_pivot(head: Node[T]) -> T:
+        """
+        Selects a Node from a list at random, with probability 1/ # Nodes;
+        Returns the value referenced by node.
+        Notes:
+            - Implements reservoir sampling with sample size k = 1
+            - O(n) time complexity
+        """
+        pivot: Node[T] = head
+        cnt: int = 1
+        curr_node: Node[T] | None = head._next
+
+        while curr_node is not None:
+            cnt += 1
+            if random.randint(1, cnt) == 1:
+                pivot = curr_node
+            curr_node = curr_node._next
+        return pivot.value
+
+    def _append_node(node: Node[T], head: Node[T] | None, tail: Node[T] | None) -> tuple[Node[T], Node[T]]:
+        """
+        Helper: attaches node to the end of a list defined by head, tail
+        Returns: head and new tail
+        """
+        node._next = None
+        if head is None or tail is None:
+            return node, node
+        tail._next = node
+        return head, node
+
+    def _quick_sort(head: Node[T] | None) -> tuple[Node[T] | None, Node[T] | None]:
+        """
+        Recursive quicksort, using random pivot selection and 3-way partition
+        """
+        if head is None or head._next is None:  # base case, single node list
+            return head, head
+
+        # select pivot
+        pivot: T = _select_pivot(head)
+
+        # 3-way partition setup
+        L_head = L_tail = None
+        E_head = E_tail = None
+        G_head = G_tail = None
+
+        # 3-way partition
+        curr_node: Node[T] | None = head
+        while curr_node is not None:
+            next_node = curr_node._next
+            curr_value: T = curr_node.value
+
+            if curr_value < pivot:  # add to L list
+                L_head, L_tail = _append_node(curr_node, L_head, L_tail)
+
+            elif not (curr_value < pivot or pivot < curr_value):  # add to E list
+                E_head, E_tail = _append_node(curr_node, E_head, E_tail)
+            else:
+                # add to G list
+                G_head, G_tail = _append_node(curr_node, G_head, G_tail)
+            curr_node = next_node
+
+        # recursive sort on partitions
+        L_head, L_tail = _quick_sort(L_head)
+        G_head, G_tail = _quick_sort(G_head)
+
+        # recombine and return new_head
+        new_head: Node[T] = cast(Node[T], E_head)
+        new_tail: Node[T] = cast(Node[T], E_tail)
+        if L_head is not None and L_tail is not None:
+            L_tail._next = new_head
+            new_head = L_head
+
+        if G_head is not None and G_tail is not None:
+            new_tail._next = G_head
+            new_tail = G_tail
+
+        return new_head, new_tail
+
+    new_head, _ = _quick_sort(head)
+
+    return new_head
