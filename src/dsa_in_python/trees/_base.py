@@ -6,35 +6,29 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from typing import Any, Generic, TypeVar
+from typing import Generic, Protocol, TypeVar
 
 T = TypeVar('T')
+T_co = TypeVar('T_co', covariant=True)
 
 
-class _PositionABC(ABC, Generic[T]):
-    """An abstraction representing the location of a single element in the Tree."""
+class Position(Protocol[T_co]):
+    """Opaque, read-only handle to a location in a tree.
+
+    A Position represents the location of a single element within a specific tree
+    container. Positions are created and managed by the tree implementation; users
+    should not construct them directly.
+
+    The only guaranteed operation is reading the stored element. A Position is
+    intended to be passed back to the same tree instance that produced it.
+    """
 
     @property
-    @abstractmethod
-    def element(self) -> T:
-        """Return the element stored at this position"""
-        raise NotImplementedError('concrete subclass must implement.')
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """Return True if other Position represents the same location."""
-        raise NotImplementedError('concrete subclass must implement.')
-
-    def __ne__(self, other: object) -> bool:
-        """Return True if other Position does not represent the same location."""
-        return not (self == other)
+    def element(self) -> T_co: ...
+    def __eq__(self, other: object) -> bool: ...
 
 
-P = TypeVar('P', bound=_PositionABC[Any])
-
-
-# Tree ABC
-class _TreeABC(ABC, Generic[T, P]):
+class _TreeABC(ABC, Generic[T]):
     """An abstract base class representing a generic tree structure."""
 
     # -------- abstract methods --------------
@@ -44,31 +38,31 @@ class _TreeABC(ABC, Generic[T, P]):
         raise NotImplementedError('concrete subclass must implement.')
 
     @abstractmethod
-    def root(self) -> P | None:
+    def root(self) -> Position[T] | None:
         """Return Position representing the tree's root (or None if empty)."""
         raise NotImplementedError('concrete subclass must implement.')
 
     @abstractmethod
-    def parent(self, p: P) -> P | None:
+    def parent(self, p: Position[T]) -> Position[T] | None:
         """Return Position representing p's parent (or None if p is root)."""
         raise NotImplementedError('concrete subclass must implement.')
 
     @abstractmethod
-    def num_children(self, p: P) -> int:
+    def num_children(self, p: Position[T]) -> int:
         """Return the number of children that Position p has."""
         raise NotImplementedError('concrete subclass must implement.')
 
     @abstractmethod
-    def children(self, p: P) -> Iterator[P]:
+    def children(self, p: Position[T]) -> Iterator[Position[T]]:
         """Generate an iteration of Positions representing Position p's children."""
         raise NotImplementedError('concrete subclass must implement.')
 
     # ------- concrete methods ------------------
-    def is_root(self, p: P) -> bool:
+    def is_root(self, p: Position[T]) -> bool:
         """Return True if Position p represents the root of the tree."""
         return self.root() == p
 
-    def is_leaf(self, p: P) -> bool:
+    def is_leaf(self, p: Position[T]) -> bool:
         """Return True if Position p does not have any children."""
         return self.num_children(p) == 0
 
@@ -77,8 +71,7 @@ class _TreeABC(ABC, Generic[T, P]):
         return len(self) == 0
 
 
-# Binary Tree ABC
-class _BinaryTreeABC(_TreeABC[T, P]):
+class _BinaryTreeABC(_TreeABC[T], ABC):
     """
     Abstract base class representing a binary tree structure. Inherits from _TreeABC.
     Provides template methods for binary tree specific accessors.
@@ -86,7 +79,7 @@ class _BinaryTreeABC(_TreeABC[T, P]):
 
     # ------- additional abstract methods -----------
     @abstractmethod
-    def left(self, p: P) -> P | None:
+    def left(self, p: Position[T]) -> Position[T] | None:
         """
         Return a Position representing p's left child.
         Returns None if Position p does not have a left child.
@@ -94,7 +87,7 @@ class _BinaryTreeABC(_TreeABC[T, P]):
         raise NotImplementedError('concrete subclass must implement.')
 
     @abstractmethod
-    def right(self, p: P) -> P | None:
+    def right(self, p: Position[T]) -> Position[T] | None:
         """
         Return a Position representing p's right child.
         Returns None if Position p does not have a right child.
@@ -102,7 +95,7 @@ class _BinaryTreeABC(_TreeABC[T, P]):
         raise NotImplementedError('concrete subclass must implement.')
 
     # ------- concrete methods ----------------------
-    def sibling(self, p: P) -> P | None:
+    def sibling(self, p: Position[T]) -> Position[T] | None:
         """Return a Position representing p's sibling (or None if no sibling)."""
         parent = self.parent(p)
         if parent is None:
@@ -114,7 +107,7 @@ class _BinaryTreeABC(_TreeABC[T, P]):
         else:
             return self.left(parent)
 
-    def children(self, p: P) -> Iterator[P]:
+    def children(self, p: Position[T]) -> Iterator[Position[T]]:
         """
         Generate an iteration over Positions representing p's children.
         Overrides abstract method in TreeABC
