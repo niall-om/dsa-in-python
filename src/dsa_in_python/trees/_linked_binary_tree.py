@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from typing import Generic, TypeVar, overload
 
-from dsa_in_python.trees._base import Position, _BinaryTreeABC
+from dsa_in_python.trees._base import Position
+from dsa_in_python.trees._mutable_binary_tree import _MutableBinaryTreeABC
 
 T = TypeVar('T')
 
@@ -56,7 +57,8 @@ class _Position(Position[T]):
         return self._node.element
 
 
-class LinkedBinaryTree(_BinaryTreeABC[T]):
+class LinkedBinaryTree(_MutableBinaryTreeABC[T]):
+    # class LinkedBinaryTree(_BinaryTreeABC[T]):
     _root: _BinaryTreeNode[T] | None
     _size: int
 
@@ -198,7 +200,7 @@ class LinkedBinaryTree(_BinaryTreeABC[T]):
         self._deprecate_node(node)
         return old
 
-    def attach(self, p: Position[T], t1: LinkedBinaryTree[T], t2: LinkedBinaryTree[T]) -> None:
+    def attach(self, p: Position[T], t1: _MutableBinaryTreeABC[T], t2: _MutableBinaryTreeABC[T]) -> None:
         """
         Attach trees t1 and t2 as left and right subtrees of external Position p.
 
@@ -206,6 +208,10 @@ class LinkedBinaryTree(_BinaryTreeABC[T]):
         Raise ValueError is Position p is invalid or is not a leaf of the tree.
         Raise TypeError if t1 and t2 are not trees of the same type as self.
         """
+
+        # Runtime type safety check
+        if type(t1) is not type(self) or type(t2) is not type(self):
+            raise TypeError('Trees must be the same concrete type as this tree.')
 
         # SAFETY: Strengthen attach() safety.
         # Currently attach() does not invalidate donor tree positions.
