@@ -57,6 +57,11 @@ class _TreeABC(ABC, Generic[T]):
         """Generate an iteration of Positions representing Position p's children."""
         raise NotImplementedError('concrete subclass must implement.')
 
+    @abstractmethod
+    def is_valid_position(self, p: Position[T]) -> bool:
+        """Return True if p is a live position belonging to this tree."""
+        raise NotImplementedError('concrete subclass must implement.')
+
     # ------- concrete methods ------------------
     def is_root(self, p: Position[T]) -> bool:
         """Return True if Position p represents the root of the tree."""
