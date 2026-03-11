@@ -5,7 +5,7 @@ using linked nodes as the underlying storage structure.
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar, overload
+from typing import Generic, TypeVar, cast, overload
 
 from dsa_in_python.trees._base import Position
 from dsa_in_python.trees._mutable_binary_tree import _MutableBinaryTreeABC
@@ -32,6 +32,8 @@ class _BinaryTreeNode(Generic[T]):
 
 
 class _Position(Position[T]):
+    """Concrete implementation of the abstract tree Postion class."""
+
     __slots__ = ('_container', '_node')
     _container: LinkedBinaryTree[T]
     _node: _BinaryTreeNode[T]
@@ -111,6 +113,14 @@ class LinkedBinaryTree(_MutableBinaryTreeABC[T]):
         if node._right_child is not None:
             cnt += 1
         return cnt
+
+    def is_valid_position(self, p: Position[T]) -> bool:
+        """Return True if p is a live, valid position belonging to this Tree."""
+        try:
+            self._validate_position(p)
+            return True
+        except (TypeError, ValueError):
+            return False
 
     # Mutators
     def add_root(self, e: T) -> Position[T]:
@@ -231,18 +241,16 @@ class LinkedBinaryTree(_MutableBinaryTreeABC[T]):
 
         # attach t1 as left subtree of node
         if not t1.is_empty():
-            assert t1._root is not None  # for type checkers
-            t1._root._parent = node
-            node._left_child = t1._root
-            t1._root = None  # set t1 instance to empty
-            t1._size = 0
+            t1_root = cast(_Position[T], t1.root())._node  # for static type checkers
+            t1_root._parent = node
+            node._left_child = t1_root
+            # SAFETY: t1 can still mutate nodes after attaching to this tree
 
         if not t2.is_empty():
-            assert t2._root is not None  # for type checkers
-            t2._root._parent = node
-            node._right_child = t2._root
-            t2._root = None  # set t2 instance to empty
-            t2._size = 0
+            t2_root = cast(_Position[T], t2.root())._node  # for static type checkers
+            t2_root._parent = node
+            node._right_child = t2_root
+            # SAFETY: t1 can still mutate nodes after attaching to this tree
         return
 
     # ------------------- internal helpers ------------------------
